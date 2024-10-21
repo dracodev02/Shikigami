@@ -12,6 +12,12 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      fontFamily: {
+        geologica: ["var(--font-geologica)"],
+      },
+      maxWidth: {
+        desktop: "1200px",
+      }
     },
   },
   plugins: [],

@@ -3,21 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0E0502;
+  --foreground: #ffffff;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geologica), sans-serif;
 }
 
 @layer utilities {
@@ -25,3 +18,29 @@ body {
     text-wrap: balance;
   }
 }
+
+.drop-shadow-meow {
+  filter: drop-shadow(0px 0px 10px #8fe5f860);
+}
+
+@keyframes show-toast {
+  0% {
+    opacity: 0;
+    transform: translateY(-100px);
+  } 10% {
+    opacity: 1;
+    transform: translateY(0);
+  } 90% {
+    opacity: 1;
+    transform: translateY(0);
+  } 100% {
+    opacity: 0;
+    transform: translateY(-100px);
+  }
+}
+
+.animate-show-toast {
+  animation: show-toast 5s ease-in-out;
+}
+
+
