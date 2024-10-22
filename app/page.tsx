@@ -103,11 +103,7 @@ export default function Home() {
 
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-    if (emailValidator.test(e.target.value)) {
-      setIsValid(true);
-    } else {
-      setIsValid(false);
-    }
+    setIsValid(emailValidator.test(e.target.value));
   };
 
   const checkEmailExists = (email: string, emails: string[]) => {
@@ -142,8 +138,12 @@ export default function Home() {
       await addEmail(email);
       setIsLoadingSubmit(false);
       setEmails([...emails, email]);
+      setEmail("");
+      setIsValid(false);
       showToast("Added email to waitlist successfully!", ToastTypeEnum.SUCCESS);
     } catch (error) {
+      setEmail("");
+      setIsValid(false);
       setIsLoadingSubmit(false);
       console.error("Error adding email:", error);
       showToast(
