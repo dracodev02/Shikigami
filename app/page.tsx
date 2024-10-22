@@ -1,4 +1,6 @@
 "use client";
+import addEmail from "@/api/addEmail";
+import getAllEmails from "@/api/getAllEmails";
 import { useEffect, useState } from "react";
 
 enum ToastTypeEnum {
@@ -8,14 +10,27 @@ enum ToastTypeEnum {
 
 type ToastType = ToastTypeEnum.SUCCESS | ToastTypeEnum.ERROR;
 
-const Toast = ({ message, type }: { message?: string; type?: ToastType }) => {
+const Toast = ({
+  message,
+  type,
+  setIsShowToast,
+}: {
+  message?: string;
+  type?: ToastType;
+  setIsShowToast: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   return (
     <div
       id="toast-default"
-      className="flex absolute animate-show-toast opacity-0 top-10 items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 z-10"
+      className={`flex absolute animate-show-toast opacity-0 top-10 items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800 z-10 ${
+        type === ToastTypeEnum.SUCCESS
+          ? "border-l-4 border-green-500"
+          : "border-l-4 border-orange-500"
+      }`}
     >
-      {type == ToastTypeEnum.SUCCESS ? (
+      {type === ToastTypeEnum.SUCCESS ? (
         <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
+          {/* Icon Success */}
           <svg
             className="w-5 h-5"
             aria-hidden="true"
@@ -29,6 +44,7 @@ const Toast = ({ message, type }: { message?: string; type?: ToastType }) => {
         </div>
       ) : (
         <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-orange-500 bg-orange-100 rounded-lg dark:bg-orange-700 dark:text-orange-200">
+          {/* Icon Error */}
           <svg
             className="w-5 h-5"
             aria-hidden="true"
@@ -48,6 +64,7 @@ const Toast = ({ message, type }: { message?: string; type?: ToastType }) => {
         className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
         data-dismiss-target="#toast-default"
         aria-label="Close"
+        onClick={() => setIsShowToast(false)}
       >
         <span className="sr-only">Close</span>
         <svg
@@ -59,9 +76,9 @@ const Toast = ({ message, type }: { message?: string; type?: ToastType }) => {
         >
           <path
             stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
             d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
           />
         </svg>
@@ -83,8 +100,6 @@ export default function Home() {
   const [emails, setEmails] = useState<string[]>([]);
   const [isValid, setIsValid] = useState(false);
   const emailValidator = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  const scriptURL =
-    "https://script.google.com/macros/s/AKfycbzGESsk6VuzJRrZVGAEthzybdA7_0bPgyeveGKvE-gtR4hSA4tt5mM8rt3blG6Pjqwm/exec";
 
   const handleChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -96,10 +111,9 @@ export default function Home() {
   };
 
   const checkEmailExists = (email: string, emails: string[]) => {
-    if (emails.indexOf(email) !== -1) {
-      return true;
-    }
-    return false;
+    return emails
+      .map((email) => email?.toLowerCase())
+      .includes(email.toLowerCase());
   };
 
   const showToast = (message: string, type: ToastType) => {
@@ -110,66 +124,32 @@ export default function Home() {
     setIsShowToast(true);
   };
 
-  const getWaitList = () => {
-    fetch(scriptURL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setEmails(data.data); // Adjust based on your response structure
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
+  const getWaitList = async () => {
+    const emails = await getAllEmails();
+    console.log(emails);
+    setEmails(emails);
   };
 
-  const handleSubmit = async () => {
-    setIsLoadingSubmit(true);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
     if (checkEmailExists(email, emails)) {
-      setIsLoadingSubmit(false);
-      setToastProps({
-        message: "Email already exists!",
-        type: ToastTypeEnum.ERROR,
-      });
+      showToast("Email already exists!", ToastTypeEnum.ERROR);
       return;
     }
-    const formData = new FormData();
-    formData.append("Email", email);
     try {
-      const response = await fetch(scriptURL, {
-        method: "POST",
-        body: formData,
-      });
-
+      setIsLoadingSubmit(true);
+      await addEmail(email);
       setIsLoadingSubmit(false);
-      if (response.ok) {
-        emails.push(email);
-        showToast(
-          "Added email to waitlist successfully!",
-          ToastTypeEnum.SUCCESS
-        );
-      } else {
-        showToast(
-          "Having some problems, please try again later!",
-          ToastTypeEnum.ERROR
-        );
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        showToast(
-          "Having some problems, please try again later!",
-          ToastTypeEnum.ERROR
-        );
-      } else {
-        showToast(
-          "Having some problems, please try again later!",
-          ToastTypeEnum.ERROR
-        );
-      }
+      setEmails([...emails, email]);
+      showToast("Added email to waitlist successfully!", ToastTypeEnum.SUCCESS);
+    } catch (error) {
+      setIsLoadingSubmit(false);
+      console.error("Error adding email:", error);
+      showToast(
+        "Having some problems, please try again later!",
+        ToastTypeEnum.ERROR
+      );
     }
   };
 
@@ -179,53 +159,67 @@ export default function Home() {
 
   useEffect(() => {
     if (isShowToast) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setIsShowToast(false);
       }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [showToast]);
-
-  useEffect(() => {
-    console.log(emails);
-  }, [emails]);
+  }, [isShowToast]);
 
   return (
     <div className="flex w-full h-screen justify-center items-center">
       {isShowToast && (
-        <Toast message={toastProps?.message} type={toastProps?.type} />
+        <Toast
+          message={toastProps?.message}
+          type={toastProps?.type}
+          setIsShowToast={setIsShowToast}
+        />
       )}
       <div className="relative flex items-center flex-col">
         <div className="relative w-[450px] max-md:w-[300px] max-w-[95%] group z-[1] mr-4">
           <img
             src="meow.png"
             className="w-full h-auto group-hover:scale-110 transition-all duration-300"
+            alt="Meow"
           />
           <img
             src="meow-light.png"
             className="w-full h-auto absolute top-0 left-0 drop-shadow-meow group-hover:scale-110 transition-all duration-300 group-hover:opacity-100 opacity-0"
+            alt="Meow Light"
           />
         </div>
-        <div className="relative w-[450px] md:h-[200px] max-md:w-[350px] -mt-20">
-          <div className="w-[96%] mx-auto h-full max-md:py-10 bg-[#EE1939] border-4 border-black rounded-[20px] px-6 flex flex-col justify-center">
+        <div className="relative w-[450px] md:h-[200px] max-md:w-[330px] -mt-20">
+          <div className="w-[96%] mx-auto h-full max-md:py-10 bg-[#EE1939] border-4 border-black rounded-[20px] px-6 max-md:px-3 flex flex-col justify-center">
             <p className="font-extrabold">Join the Shikigami waitlist</p>
             <p className="">Sign up to collect limited edition NFTs</p>
-            <div className="bg-white px-4 py-3 rounded mt-4 flex justify-between gap-4">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-white px-4 py-3 rounded mt-4 flex justify-between items-center gap-4"
+            >
               <input
                 value={email}
                 onChange={handleChangeEmail}
                 className="focus:outline-none text-black bg-transparent flex-1"
-                type="text"
+                type="email"
                 placeholder="meow@shikigami.com"
+                required
               />
-              <button
-                onClick={handleSubmit}
-                className={`text-black font-extrabold active:scale-95 transition-all duration-300 ${
-                  !isValid && "hidden"
-                } `}
-              >
-                Join
-              </button>
-            </div>
+              {isLoadingSubmit ? (
+                <div className="w-5 h-5">
+                  <img src="loading.svg" />
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  className={`text-black font-extrabold active:scale-95 transition-all duration-300 ${
+                    !isValid ? "hidden" : ""
+                  }`}
+                  disabled={!isValid || isLoadingSubmit}
+                >
+                  {isLoadingSubmit ? "Joining..." : "Join"}
+                </button>
+              )}
+            </form>
           </div>
           <div className="absolute w-full h-full top-2 left-1/2 -translate-x-1/2 bg-white border-4 border-black rounded-3xl -z-[1]"></div>
         </div>

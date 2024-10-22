@@ -2,6 +2,10 @@ const Decor = () => {
   return (
     <div className="w-screen h-screen fixed top-0 left-0 select-none">
       <img
+        src="border-shiki.svg"
+        className="absolute top-0 left-0 h-full object-cover"
+      />
+      <img
         src="bg-shiki.png"
         className="absolute top-0 left-0 w-full h-full object-cover opacity-10"
       />
