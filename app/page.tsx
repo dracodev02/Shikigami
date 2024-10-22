@@ -190,7 +190,9 @@ export default function Home() {
         </div>
         <div className="relative w-[450px] md:h-[200px] max-md:w-[330px] -mt-20">
           <div className="w-[96%] mx-auto h-full max-md:py-10 bg-[#EE1939] border-4 border-black rounded-[20px] px-6 max-md:px-3 flex flex-col justify-center">
-            <p className="font-extrabold">Join the Shikigami waitlist</p>
+            <p className="font-extrabold text-2xl max-md:text-xl">
+              Join the Shikigami waitlist
+            </p>
             <p className="">Sign up to collect limited edition NFTs</p>
             <form
               onSubmit={handleSubmit}

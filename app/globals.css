@@ -43,4 +43,6 @@ body {
   animation: show-toast 5s ease-in-out;
 }
 
-
+img {
+  user-select: none;
+}
